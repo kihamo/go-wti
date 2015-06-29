@@ -16,15 +16,20 @@ var (
 
 func main() {
 	iniflags.Parse()
+	addr := fmt.Sprintf("%s:%d", *host, *port)
 
-	client, err := client.NewTranslatorClient(fmt.Sprintf("%s:%d", *host, *port))
+	client, err := client.NewTranslatorClient(addr)
 	if err != nil {
-		log.Panic(err)
+		log.Panic("Error start client: %s", err.Error())
 	}
+	defer client.Transport.Close()
 
-	err = client.Ping()
+	log.Print("Start client on ", addr)
+
+	response, err := client.Ping()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Call method error: ", err)
 	}
+	fmt.Println(response)
 	fmt.Println("ping()")
 }

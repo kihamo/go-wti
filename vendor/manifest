@@ -4,7 +4,7 @@
 		{
 			"importpath": "github.com/kihamo/go-wti/client",
 			"repository": "https://github.com/kihamo/go-wti",
-			"revision": "c0bc1fc42e8cef5f27a2a184c86123f1464ce345",
+			"revision": "713c9b4c0fd34e1ac722fcad6815a6d053d74b4a",
 			"branch": "master",
 			"path": "/client"
 		},
@@ -18,14 +18,14 @@
 		{
 			"importpath": "github.com/kihamo/go-wti/gen-go/translator",
 			"repository": "https://github.com/kihamo/go-wti",
-			"revision": "c0bc1fc42e8cef5f27a2a184c86123f1464ce345",
+			"revision": "713c9b4c0fd34e1ac722fcad6815a6d053d74b4a",
 			"branch": "master",
 			"path": "/gen-go/translator"
 		},
 		{
 			"importpath": "github.com/kihamo/go-wti/service",
 			"repository": "https://github.com/kihamo/go-wti",
-			"revision": "c0bc1fc42e8cef5f27a2a184c86123f1464ce345",
+			"revision": "713c9b4c0fd34e1ac722fcad6815a6d053d74b4a",
 			"branch": "master",
 			"path": "/service"
 		},

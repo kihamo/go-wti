@@ -21,13 +21,16 @@ func init() {
 
 func main() {
 	iniflags.Parse()
+	addr := fmt.Sprintf("%s:%d", *host, *port)
 
-	server, err := service.NewTranslatorServer(fmt.Sprintf("%s:%d", *host, *port))
+	server, err := service.NewTranslatorServer(addr)
 	if err != nil {
-		log.Panic(err)
+		log.Panic("Error start service: %s", err.Error())
 	}
 
+	log.Print("Start server on ", addr)
+
 	if err = server.Serve(); err != nil {
-		log.Panic("Error calling serve on hello server: %s", err.Error())
+		log.Panic("Error calling serve on service: %s", err.Error())
 	}
 }

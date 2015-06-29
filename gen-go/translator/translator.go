@@ -16,7 +16,7 @@ var _ = fmt.Printf
 var _ = bytes.Equal
 
 type Translator interface {
-	Ping() (err error)
+	Ping() (r bool, err error)
 }
 
 type TranslatorClient struct {
@@ -45,7 +45,7 @@ func NewTranslatorClientProtocol(t thrift.TTransport, iprot thrift.TProtocol, op
 	}
 }
 
-func (p *TranslatorClient) Ping() (err error) {
+func (p *TranslatorClient) Ping() (r bool, err error) {
 	if err = p.sendPing(); err != nil {
 		return
 	}
@@ -72,7 +72,7 @@ func (p *TranslatorClient) sendPing() (err error) {
 	return oprot.Flush()
 }
 
-func (p *TranslatorClient) recvPing() (err error) {
+func (p *TranslatorClient) recvPing() (value bool, err error) {
 	iprot := p.InputProtocol
 	if iprot == nil {
 		iprot = p.ProtocolFactory.GetProtocol(p.Transport)
@@ -106,6 +106,7 @@ func (p *TranslatorClient) recvPing() (err error) {
 	if err = iprot.ReadMessageEnd(); err != nil {
 		return
 	}
+	value = result.GetSuccess()
 	return
 }
 
@@ -171,14 +172,17 @@ func (p *translatorProcessorPing) Process(seqId int32, iprot, oprot thrift.TProt
 
 	iprot.ReadMessageEnd()
 	result := PingResult{}
+	var retval bool
 	var err2 error
-	if err2 = p.handler.Ping(); err2 != nil {
+	if retval, err2 = p.handler.Ping(); err2 != nil {
 		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing ping: "+err2.Error())
 		oprot.WriteMessageBegin("ping", thrift.EXCEPTION, seqId)
 		x.Write(oprot)
 		oprot.WriteMessageEnd()
 		oprot.Flush()
 		return true, err2
+	} else {
+		result.Success = &retval
 	}
 	if err2 = oprot.WriteMessageBegin("ping", thrift.REPLY, seqId); err2 != nil {
 		err = err2
@@ -253,10 +257,23 @@ func (p *PingArgs) String() string {
 }
 
 type PingResult struct {
+	Success *bool `thrift:"success,0" json:"success"`
 }
 
 func NewPingResult() *PingResult {
 	return &PingResult{}
+}
+
+var PingResult_Success_DEFAULT bool
+
+func (p *PingResult) GetSuccess() bool {
+	if !p.IsSetSuccess() {
+		return PingResult_Success_DEFAULT
+	}
+	return *p.Success
+}
+func (p *PingResult) IsSetSuccess() bool {
+	return p.Success != nil
 }
 
 func (p *PingResult) Read(iprot thrift.TProtocol) error {
@@ -271,8 +288,15 @@ func (p *PingResult) Read(iprot thrift.TProtocol) error {
 		if fieldTypeId == thrift.STOP {
 			break
 		}
-		if err := iprot.Skip(fieldTypeId); err != nil {
-			return err
+		switch fieldId {
+		case 0:
+			if err := p.ReadField0(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
 		}
 		if err := iprot.ReadFieldEnd(); err != nil {
 			return err
@@ -284,9 +308,21 @@ func (p *PingResult) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
+func (p *PingResult) ReadField0(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadBool(); err != nil {
+		return fmt.Errorf("error reading field 0: %s", err)
+	} else {
+		p.Success = &v
+	}
+	return nil
+}
+
 func (p *PingResult) Write(oprot thrift.TProtocol) error {
 	if err := oprot.WriteStructBegin("ping_result"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField0(oprot); err != nil {
+		return err
 	}
 	if err := oprot.WriteFieldStop(); err != nil {
 		return fmt.Errorf("write field stop error: %s", err)
@@ -295,6 +331,21 @@ func (p *PingResult) Write(oprot thrift.TProtocol) error {
 		return fmt.Errorf("write struct stop error: %s", err)
 	}
 	return nil
+}
+
+func (p *PingResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err := oprot.WriteFieldBegin("success", thrift.BOOL, 0); err != nil {
+			return fmt.Errorf("%T write field begin error 0:success: %s", p, err)
+		}
+		if err := oprot.WriteBool(bool(*p.Success)); err != nil {
+			return fmt.Errorf("%T.success (0) field write error: %s", p, err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return fmt.Errorf("%T write field end error 0:success: %s", p, err)
+		}
+	}
+	return err
 }
 
 func (p *PingResult) String() string {
