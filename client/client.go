@@ -1,4 +1,4 @@
-package service
+package client
 
 import (
 	"log"
@@ -7,19 +7,21 @@ import (
 	"github.com/kihamo/go-wti/gen-go/translator"
 )
 
-func NewTranslatorServer(addr string) (*thrift.TSimpleServer, error) {
+func NewTranslatorClient(addr string) (*translator.TranslatorClient, error) {
 	transport, err := thrift.NewTServerSocket(addr)
 	if err != nil {
 		log.Fatal("Error starting server socket at %s: %s", addr, err)
 	}
-	defer transport.Close()
-
-	handler := NewTranslatorHandler()
-	processor := translator.NewTranslatorProcessor(handler)
 
 	transportFactory := thrift.NewTTransportFactory()
 	protocolFactory := thrift.NewTBinaryProtocolFactoryDefault()
 
-	server := thrift.NewTSimpleServer4(processor, transport, transportFactory, protocolFactory)
-	return server, nil
+	transport = transportFactory.GetTransport(transport)
+	defer transport.Close()
+
+	if err = transport.Open(); err != nil {
+		return nil, err
+	}
+
+	return translator.NewTranslatorClientFactory(transport, protocolFactory)
 }

@@ -1,16 +1,23 @@
 CURRENT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
+.PHONY: all gen build clean precommit
+
 all: clean build
 
-build: deps
-	thrift -r --gen go:thrift_import="github.com/apache/thrift/lib/go/thrift" translator.thrift
+gen:
+	@thrift -r --gen go:thrift_import="github.com/apache/thrift/lib/go/thrift" translator.thrift
+
+build: gen deps
 	gb build
 
-run: build
-	$(CURRENT_DIR)bin/translator -config=$(CURRENT_DIR)config/config.ini
+run-server: build
+	$(CURRENT_DIR)bin/service -config=$(CURRENT_DIR)config/config.ini
+
+run-client: build
+    $(CURRENT_DIR)bin/client -config=$(CURRENT_DIR)config/config.ini
 
 clean:
-	rm -rf $(CURRENT_DIR)vendor/src/ bin pkg
+	rm -rf $(CURRENT_DIR)vendor/src/ $(CURRENT_DIR)bin $(CURRENT_DIR)pkg $(CURRENT_DIR)/gen-go
 	go clean
 
 deps:
@@ -18,4 +25,4 @@ deps:
 	gb vendor update -all
 
 precommit:
-	goimports -w $(CURRENT_DIR)src/
+	goimports -w $(CURRENT_DIR)
