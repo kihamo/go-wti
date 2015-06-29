@@ -7,10 +7,10 @@ build: deps
 	gb build
 
 run: build
-	$(CURRENT_DIR)bin/translator
+	$(CURRENT_DIR)bin/translator -config=$(CURRENT_DIR)config/config.ini
 
 clean:
-	rm -rf $(CURRENT_DIR)vendor/src/ $(CURRENT_DIR)/src/translator/gen-go bin pkg
+	rm -rf $(CURRENT_DIR)vendor/src/ bin pkg
 	go clean
 
 deps:

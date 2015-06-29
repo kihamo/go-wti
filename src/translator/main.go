@@ -1,14 +1,18 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"runtime"
 
 	"github.com/kihamo/go-wti/service"
+	"github.com/vharitonsky/iniflags"
 )
 
-const (
-	NetworkAddr = "0.0.0.0:9102"
+var (
+	host = flag.String("host", "0.0.0.0", "Service host")
+	port = flag.Int64("port", 9102, "Service port")
 )
 
 func init() {
@@ -16,7 +20,9 @@ func init() {
 }
 
 func main() {
-	server, err := service.NewTranslatorServer(NetworkAddr)
+	iniflags.Parse()
+
+	server, err := service.NewTranslatorServer(fmt.Sprintf("%s:%d", *host, *port))
 	if err != nil {
 		log.Panic(err)
 	}
