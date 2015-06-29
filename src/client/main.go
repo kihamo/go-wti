@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/kihamo/go-wti/client"
+	t "github.com/kihamo/go-wti"
 	"github.com/vharitonsky/iniflags"
 )
 
@@ -18,9 +18,9 @@ func main() {
 	iniflags.Parse()
 	addr := fmt.Sprintf("%s:%d", *host, *port)
 
-	client, err := client.NewTranslatorClient(addr)
+	client, err := t.NewTranslatorClient(addr)
 	if err != nil {
-		log.Panic("Error start client: %s", err.Error())
+		log.Panic(err)
 	}
 	defer client.Transport.Close()
 

@@ -6,7 +6,7 @@ import (
 	"log"
 	"runtime"
 
-	"github.com/kihamo/go-wti/service"
+	t "github.com/kihamo/go-wti"
 	"github.com/vharitonsky/iniflags"
 )
 
@@ -23,9 +23,9 @@ func main() {
 	iniflags.Parse()
 	addr := fmt.Sprintf("%s:%d", *host, *port)
 
-	server, err := service.NewTranslatorServer(addr)
+	server, err := t.NewTranslatorServer(addr)
 	if err != nil {
-		log.Panic("Error start service: %s", err.Error())
+		log.Panic(err)
 	}
 
 	log.Print("Start server on ", addr)

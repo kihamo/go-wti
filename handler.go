@@ -1,4 +1,4 @@
-package service
+package gowti
 
 type TranslatorHandler struct {
 }

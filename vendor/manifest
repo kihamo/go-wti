@@ -2,13 +2,6 @@
 	"version": 0,
 	"dependencies": [
 		{
-			"importpath": "github.com/kihamo/go-wti/client",
-			"repository": "https://github.com/kihamo/go-wti",
-			"revision": "713c9b4c0fd34e1ac722fcad6815a6d053d74b4a",
-			"branch": "master",
-			"path": "/client"
-		},
-		{
 			"importpath": "github.com/apache/thrift/lib/go/thrift",
 			"repository": "https://github.com/apache/thrift",
 			"revision": "5ef662b9046d18aee224018061413ad7ee5d80a5",
@@ -18,14 +11,14 @@
 		{
 			"importpath": "github.com/kihamo/go-wti/gen-go/translator",
 			"repository": "https://github.com/kihamo/go-wti",
-			"revision": "713c9b4c0fd34e1ac722fcad6815a6d053d74b4a",
+			"revision": "e5ad202a7740b0fde69e242b93073d68d6914fd6",
 			"branch": "master",
 			"path": "/gen-go/translator"
 		},
 		{
 			"importpath": "github.com/kihamo/go-wti/service",
 			"repository": "https://github.com/kihamo/go-wti",
-			"revision": "713c9b4c0fd34e1ac722fcad6815a6d053d74b4a",
+			"revision": "e5ad202a7740b0fde69e242b93073d68d6914fd6",
 			"branch": "master",
 			"path": "/service"
 		},
@@ -34,6 +27,13 @@
 			"repository": "https://github.com/vharitonsky/iniflags",
 			"revision": "14f4b95d09b99e2475e82c37a2f943ef2469a890",
 			"branch": "master"
+		},
+		{
+			"importpath": "github.com/kihamo/go-wti/client",
+			"repository": "https://github.com/kihamo/go-wti",
+			"revision": "e5ad202a7740b0fde69e242b93073d68d6914fd6",
+			"branch": "master",
+			"path": "/client"
 		}
 	]
 }

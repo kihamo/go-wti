@@ -1,4 +1,4 @@
-package client
+package gowti
 
 import (
 	"log"
