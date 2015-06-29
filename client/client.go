@@ -8,7 +8,7 @@ import (
 )
 
 func NewTranslatorClient(addr string) (*translator.TranslatorClient, error) {
-	transport, err := thrift.NewTServerSocket(addr)
+    transport, err := thrift.NewTSocket(addr)
 	if err != nil {
 		log.Fatal("Error starting server socket at %s: %s", addr, err)
 	}

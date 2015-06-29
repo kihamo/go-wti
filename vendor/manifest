@@ -2,6 +2,13 @@
 	"version": 0,
 	"dependencies": [
 		{
+			"importpath": "github.com/kihamo/go-wti/client",
+			"repository": "https://github.com/kihamo/go-wti",
+			"revision": "c0bc1fc42e8cef5f27a2a184c86123f1464ce345",
+			"branch": "master",
+			"path": "/client"
+		},
+		{
 			"importpath": "github.com/apache/thrift/lib/go/thrift",
 			"repository": "https://github.com/apache/thrift",
 			"revision": "5ef662b9046d18aee224018061413ad7ee5d80a5",
@@ -11,14 +18,14 @@
 		{
 			"importpath": "github.com/kihamo/go-wti/gen-go/translator",
 			"repository": "https://github.com/kihamo/go-wti",
-			"revision": "e05c9e2c1f3b71ecf2830c7a5d1566e54858c661",
+			"revision": "c0bc1fc42e8cef5f27a2a184c86123f1464ce345",
 			"branch": "master",
 			"path": "/gen-go/translator"
 		},
 		{
 			"importpath": "github.com/kihamo/go-wti/service",
 			"repository": "https://github.com/kihamo/go-wti",
-			"revision": "e05c9e2c1f3b71ecf2830c7a5d1566e54858c661",
+			"revision": "c0bc1fc42e8cef5f27a2a184c86123f1464ce345",
 			"branch": "master",
 			"path": "/service"
 		},

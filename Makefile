@@ -5,7 +5,8 @@ CURRENT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 all: clean build
 
 gen:
-	@thrift -r --gen go:thrift_import="github.com/apache/thrift/lib/go/thrift" translator.thrift
+	thrift -r --gen go:thrift_import="github.com/apache/thrift/lib/go/thrift" translator.thrift
+	goimports -w $(CURRENT_DIR)gen-go
 
 build: gen deps
 	gb build
