@@ -1,0 +1,19 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/kihamo/go-wti/service",
+			"repository": "https://github.com/kihamo/go-wti",
+			"revision": "ba048aa1afd8b0b23423b0b8782849e0429e8846",
+			"branch": "master",
+			"path": "/service"
+		},
+		{
+			"importpath": "github.com/apache/thrift/lib/go/thrift",
+			"repository": "https://github.com/apache/thrift",
+			"revision": "5ef662b9046d18aee224018061413ad7ee5d80a5",
+			"branch": "master",
+			"path": "/lib/go/thrift"
+		}
+	]
+}

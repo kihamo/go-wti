@@ -1,4 +1,4 @@
 .idea
 bin
 pkg
-gen-go
+vendor/src/*
