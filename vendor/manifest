@@ -2,24 +2,10 @@
 	"version": 0,
 	"dependencies": [
 		{
-			"importpath": "github.com/kihamo/go-wti/service",
-			"repository": "https://github.com/kihamo/go-wti",
-			"revision": "e5ad202a7740b0fde69e242b93073d68d6914fd6",
-			"branch": "master",
-			"path": "/service"
-		},
-		{
 			"importpath": "github.com/vharitonsky/iniflags",
 			"repository": "https://github.com/vharitonsky/iniflags",
 			"revision": "14f4b95d09b99e2475e82c37a2f943ef2469a890",
 			"branch": "master"
-		},
-		{
-			"importpath": "github.com/kihamo/go-wti/client",
-			"repository": "https://github.com/kihamo/go-wti",
-			"revision": "e5ad202a7740b0fde69e242b93073d68d6914fd6",
-			"branch": "master",
-			"path": "/client"
 		},
 		{
 			"importpath": "github.com/fromYukki/webtranslateit_go_client",
@@ -37,7 +23,7 @@
 		{
 			"importpath": "github.com/kihamo/go-wti/gen-go/translator",
 			"repository": "https://github.com/kihamo/go-wti",
-			"revision": "2c839176c2509a7c822b56f921b0819aa767d711",
+			"revision": "4424e4049d039fea9d73fe0470a43928615315b0",
 			"branch": "master",
 			"path": "/gen-go/translator"
 		}
