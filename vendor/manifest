@@ -23,9 +23,15 @@
 		{
 			"importpath": "github.com/kihamo/go-wti/gen-go/translator",
 			"repository": "https://github.com/kihamo/go-wti",
-			"revision": "4424e4049d039fea9d73fe0470a43928615315b0",
+			"revision": "0951c4a76a046549859277ea8d0c96dab44450f2",
 			"branch": "master",
 			"path": "/gen-go/translator"
+		},
+		{
+			"importpath": "github.com/kihamo/go-wti",
+			"repository": "https://github.com/kihamo/go-wti",
+			"revision": "0951c4a76a046549859277ea8d0c96dab44450f2",
+			"branch": "master"
 		}
 	]
 }
