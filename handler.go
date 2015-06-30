@@ -2,10 +2,10 @@ package gowti
 
 import (
 	"fmt"
-	"time"
 	"log"
 	"regexp"
 	"strings"
+	"time"
 
 	wti "github.com/fromYukki/webtranslateit_go_client"
 	"github.com/kihamo/go-wti/gen-go/translator"
@@ -109,7 +109,12 @@ func (h *TranslatorHandler) parseFile(file wti.File, content []byte) {
 	h.dictionaries[locale] = map[string]string{}
 
 	for _, match := range exp.FindAllStringSubmatch(string(content), -1) {
-		h.dictionaries[locale][match[1]] = match[2]
+		value := match[2]
+		if value == "" {
+			value = match[1]
+		}
+
+		h.dictionaries[locale][match[1]] = value
 	}
 
 	log.Printf("Update %s locale", locale)
