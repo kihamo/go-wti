@@ -22,6 +22,7 @@ func Usage() {
 	flag.PrintDefaults()
 	fmt.Fprintln(os.Stderr, "\nFunctions:")
 	fmt.Fprintln(os.Stderr, "  bool ping()")
+	fmt.Fprintln(os.Stderr, "   get_dictionary(string locale)")
 	fmt.Fprintln(os.Stderr)
 	os.Exit(0)
 }
@@ -122,6 +123,16 @@ func main() {
 			flag.Usage()
 		}
 		fmt.Print(client.Ping())
+		fmt.Print("\n")
+		break
+	case "get_dictionary":
+		if flag.NArg()-1 != 1 {
+			fmt.Fprintln(os.Stderr, "GetDictionary requires 1 args")
+			flag.Usage()
+		}
+		argvalue0 := flag.Arg(1)
+		value0 := argvalue0
+		fmt.Print(client.GetDictionary(value0))
 		fmt.Print("\n")
 		break
 	case "":

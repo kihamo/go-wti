@@ -2,20 +2,6 @@
 	"version": 0,
 	"dependencies": [
 		{
-			"importpath": "github.com/apache/thrift/lib/go/thrift",
-			"repository": "https://github.com/apache/thrift",
-			"revision": "5ef662b9046d18aee224018061413ad7ee5d80a5",
-			"branch": "master",
-			"path": "/lib/go/thrift"
-		},
-		{
-			"importpath": "github.com/kihamo/go-wti/gen-go/translator",
-			"repository": "https://github.com/kihamo/go-wti",
-			"revision": "e5ad202a7740b0fde69e242b93073d68d6914fd6",
-			"branch": "master",
-			"path": "/gen-go/translator"
-		},
-		{
 			"importpath": "github.com/kihamo/go-wti/service",
 			"repository": "https://github.com/kihamo/go-wti",
 			"revision": "e5ad202a7740b0fde69e242b93073d68d6914fd6",
@@ -34,6 +20,26 @@
 			"revision": "e5ad202a7740b0fde69e242b93073d68d6914fd6",
 			"branch": "master",
 			"path": "/client"
+		},
+		{
+			"importpath": "github.com/fromYukki/webtranslateit_go_client",
+			"repository": "https://github.com/fromYukki/webtranslateit_go_client",
+			"revision": "675bf6cce3f3c967e6dde6bb26a11df2e60966c2",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/apache/thrift/lib/go/thrift",
+			"repository": "https://github.com/apache/thrift",
+			"revision": "5ef662b9046d18aee224018061413ad7ee5d80a5",
+			"branch": "master",
+			"path": "/lib/go/thrift"
+		},
+		{
+			"importpath": "github.com/kihamo/go-wti/gen-go/translator",
+			"repository": "https://github.com/kihamo/go-wti",
+			"revision": "2c839176c2509a7c822b56f921b0819aa767d711",
+			"branch": "master",
+			"path": "/gen-go/translator"
 		}
 	]
 }

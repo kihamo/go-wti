@@ -26,10 +26,9 @@ func main() {
 
 	log.Print("Start client on ", addr)
 
-	response, err := client.Ping()
+	response, err := client.GetDictionary("id_id1")
 	if err != nil {
 		log.Fatal("Call method error: ", err)
 	}
-	fmt.Println(response)
-	fmt.Println("ping()")
+	fmt.Println(response["Payment Methods"])
 }
