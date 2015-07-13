@@ -1,14 +1,16 @@
-package gowti
+package godic
 
 import (
-	"fmt"
-	"log"
+	"errors"
 	"regexp"
 	"strings"
 	"time"
 
 	wti "github.com/fromYukki/webtranslateit_go_client"
-	"github.com/kihamo/go-wti/gen-go/translator"
+)
+
+const (
+	updatedLangRegexp = "(?is)\\$lang\\[\"(?P<key>.*?)\"\\] = \"(?P<value>.*?)\";"
 )
 
 var (
@@ -21,10 +23,6 @@ var (
 	}
 )
 
-const (
-	updatedLangRegexp = "(?is)\\$lang\\[\"(?P<key>.*?)\"\\] = \"(?P<value>.*?)\";"
-)
-
 func init() {
 	var err error
 
@@ -34,79 +32,80 @@ func init() {
 	}
 }
 
-type TranslatorHandler struct {
+type WebTranslateIt struct {
 	wti                 *wti.WebTranslateIt
 	updateRetryDelay    time.Duration
 	updateRetryAttempts int64
 	dictionaries        map[string]map[string]string
+	callback            func()
 }
 
-func NewTranslatorHandler(wtiToken string, updateRetryDelay time.Duration, updateRetryAttempts int64) *TranslatorHandler {
-	h := &TranslatorHandler{
+func NewWebTranslateIt(wtiToken string, updateRetryDelay time.Duration, updateRetryAttempts int64) *WebTranslateIt {
+	return &WebTranslateIt{
 		wti:                 wti.NewWebTranslateIt(wtiToken),
 		updateRetryDelay:    updateRetryDelay,
 		updateRetryAttempts: updateRetryAttempts,
 		dictionaries:        map[string]map[string]string{},
 	}
-	h.run()
-
-	return h
 }
 
-func (h *TranslatorHandler) Ping() (bool, error) {
-	return true, nil
-}
-
-func (h *TranslatorHandler) GetDictionary(locale string) (map[string]string, error) {
+func (w *WebTranslateIt) GetDictionary(locale string) (map[string]string, error) {
 	locale = strings.ToLower(locale)
 
-	dictionary, ok := h.dictionaries[locale]
+	dictionary, ok := w.dictionaries[locale]
 	if !ok {
-		return nil, &translator.TranslatorError{
-			ErrorCode:    translator.TranslatorErrorCode_LOCALE_NOT_FOUND,
-			ErrorMessage: fmt.Sprintf("Locale %s nof found", locale),
-		}
+		return nil, errors.New("Locale not exists")
 	}
 
 	return dictionary, nil
 }
 
-func (h *TranslatorHandler) run() {
-	project, err := h.wti.GetProject()
+func (w *WebTranslateIt) SetCallback(f func()) {
+	w.callback = f
+}
+
+func (w *WebTranslateIt) Update() error {
+	project, err := w.wti.GetProject()
 	if err != nil {
 		// TODO: log
-		return
+		return err
 	}
 
 	zipFile, err := project.ZipFile()
 	if err != nil {
 		// TODO: log
-		return
+		return err
 	}
 
 	data, err := zipFile.Extract()
 	if err != nil {
 		// TODO: log
-		return
+		return err
 	}
 
 	for i := range project.ProjectFiles {
-		h.parseFile(project.ProjectFiles[i], data[project.ProjectFiles[i].Name])
+		w.parseFile(project.ProjectFiles[i], data[project.ProjectFiles[i].Name])
 	}
 
-	if h.updateRetryDelay > 0 {
-		time.AfterFunc(h.updateRetryDelay, func() { h.run() })
+	if w.callback != nil {
+		w.callback()
 	}
+
+	if w.updateRetryDelay > 0 {
+		time.AfterFunc(w.updateRetryDelay, func() { w.Update() })
+	}
+
+	return nil
 }
 
-func (h *TranslatorHandler) parseFile(file wti.File, content []byte) {
+func (w *WebTranslateIt) parseFile(file wti.File, content []byte) {
 	locale := file.LocaleCode
 	if _, ok := localAliases[locale]; ok {
 		locale = localAliases[locale]
 	}
 
 	locale = strings.ToLower(locale)
-	h.dictionaries[locale] = map[string]string{}
+	w.dictionaries[locale] = map[string]string{}
 
 	for _, match := range exp.FindAllStringSubmatch(string(content), -1) {
 		value := match[2]
@@ -114,8 +113,6 @@ func (h *TranslatorHandler) parseFile(file wti.File, content []byte) {
 			value = match[1]
 		}
 
-		h.dictionaries[locale][match[1]] = value
+		w.dictionaries[locale][match[1]] = value
 	}
-
-	log.Printf("Update %s locale", locale)
 }
