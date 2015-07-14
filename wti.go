@@ -5,6 +5,7 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	wti "github.com/fromYukki/webtranslateit_go_client"
@@ -39,6 +40,7 @@ type WebTranslateIt struct {
 	updateRetryAttempts int64
 	dictionaries        []*Dictionary
 	callback            func([]string)
+	mutex               sync.Mutex
 }
 
 type Dictionary struct {
@@ -46,6 +48,17 @@ type Dictionary struct {
 	Phrases map[string]string
 	Hash    string
 	Update  bool
+	File    wti.File
+}
+
+func GetLocale(locale string) string {
+	locale = strings.ToLower(locale)
+
+	if alias, ok := localeAliases[locale]; ok {
+		return alias
+	}
+
+	return locale
 }
 
 func NewWebTranslateIt(wtiToken string, updateRetryDelay time.Duration, updateRetryAttempts int64) *WebTranslateIt {
@@ -57,8 +70,12 @@ func NewWebTranslateIt(wtiToken string, updateRetryDelay time.Duration, updateRe
 	}
 }
 
+func (w *WebTranslateIt) GetDictionaries() []*Dictionary {
+	return w.dictionaries
+}
+
 func (w *WebTranslateIt) GetDictionary(locale string) (*Dictionary, error) {
-	locale = w.getLocale(locale)
+	locale = GetLocale(locale)
 
 	for i := range w.dictionaries {
 		if w.dictionaries[i].Locale == locale {
@@ -74,6 +91,9 @@ func (w *WebTranslateIt) SetCallback(f func([]string)) {
 }
 
 func (w *WebTranslateIt) Update() error {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
 	for i := range w.dictionaries {
 		w.dictionaries[i].Update = false
 	}
@@ -123,28 +143,21 @@ func (w *WebTranslateIt) Update() error {
 	return nil
 }
 
-func (w *WebTranslateIt) getLocale(locale string) string {
-	locale = strings.ToLower(locale)
-
-	if alias, ok := localeAliases[locale]; ok {
-		return alias
-	}
-
-	return locale
-}
-
 func (w *WebTranslateIt) parseFile(file wti.File, content []byte) {
 	dictionary, err := w.GetDictionary(file.LocaleCode)
 	if err != nil {
 		dictionary = &Dictionary{
-			Locale: w.getLocale(file.LocaleCode),
-			Hash:   file.Hash,
+			Locale: GetLocale(file.LocaleCode),
 		}
+
+		w.dictionaries = append(w.dictionaries, dictionary)
 	}
 
+	dictionary.File = file
 	if dictionary.Hash != file.Hash {
 		dictionary.Phrases = map[string]string{}
 		dictionary.Update = true
+		dictionary.Hash = file.Hash
 
 		for _, match := range exp.FindAllStringSubmatch(string(content), -1) {
 			value := match[2]

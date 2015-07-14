@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-
 	"log"
 	"time"
 
@@ -23,13 +22,11 @@ func main() {
 	flag.Parse()
 
 	addr := fmt.Sprintf("%s:%d", *host, *port)
-	server, err := godic.NewServer(addr, *debug)
+	wti := godic.NewWebTranslateIt(*wtiToken, *updateRetryDelay, *updateRetryAttempts)
+	server, err := godic.NewServer(addr, wti, *debug)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	wti := godic.NewWebTranslateIt(*wtiToken, *updateRetryDelay, *updateRetryAttempts)
-	server.SetWebTranslateIt(wti)
 
 	log.Printf("turnpike server starting on %s\n", addr)
 	log.Fatal(server.ListenAndServe())

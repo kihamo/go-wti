@@ -65,9 +65,11 @@ func (s *GodicClient) DictionaryUpdate() (bool, error) {
 
 func (s *GodicClient) UpdateSubscribe(locales []string, f func(locale string)) {
 	for i := range locales {
-		topic := fmt.Sprintf(godic.UpdateTopic, locales[i])
+		locale := godic.GetLocale(locales[i])
+
+		topic := fmt.Sprintf(godic.UpdateTopic, locale)
 		s.client.Subscribe(topic, func([]interface{}, map[string]interface{}) {
-			f(locales[i])
+			f(locale)
 		})
 	}
 }

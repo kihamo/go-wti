@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/kihamo/godic/sdk"
 )
@@ -26,16 +27,15 @@ func main() {
 	quit := make(chan bool)
 	client.UpdateSubscribe([]string{"vi_vn", "ms"}, func(locale string) {
 		log.Printf("Update locale %s\n", locale)
-		//quit <- true
+		quit <- true
 	})
 
-	/*
-		update, err := client.DictionaryUpdate()
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Printf("Send dictionary update result %v\n", update)
-	*/
+	time.Sleep(5 * time.Second)
+	update, err := client.DictionaryUpdate()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Send dictionary update result %v\n", update)
 
 	/*
 		dic, err := client.GetDictionary("vi_vn")

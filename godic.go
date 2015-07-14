@@ -1,6 +1,7 @@
 package godic // import "github.com/kihamo/godic"
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -22,7 +23,7 @@ type GodicServer struct {
 	wti    *WebTranslateIt
 }
 
-func NewServer(addr string, debug bool) (server *GodicServer, err error) {
+func NewServer(addr string, wti *WebTranslateIt, debug bool) (server *GodicServer, err error) {
 	if debug {
 		turnpike.Debug()
 	}
@@ -33,6 +34,16 @@ func NewServer(addr string, debug bool) (server *GodicServer, err error) {
 		return nil, err
 	}
 
+	mux := http.NewServeMux()
+	server = &GodicServer{
+		server: &http.Server{
+			Addr:    addr,
+			Handler: mux,
+		},
+		client: client,
+		wti:    wti,
+	}
+
 	if err = client.Register(GetDictionaryMethod, server.getDictionary); err != nil {
 		return nil, err
 	}
@@ -41,28 +52,31 @@ func NewServer(addr string, debug bool) (server *GodicServer, err error) {
 		return nil, err
 	}
 
-	mux := http.NewServeMux()
 	mux.HandleFunc("/dictionaries", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("dictionaries health check"))
+		dictionaries := server.wti.GetDictionaries()
+		reply := make(map[string]map[string]interface{}, len(dictionaries))
+
+		for i := range dictionaries {
+			reply[dictionaries[i].Locale] = map[string]interface{}{
+				"count":     len(dictionaries[i].Phrases),
+				"hash":      dictionaries[i].File.Hash,
+				"update_at": dictionaries[i].File.UpdatedAt,
+			}
+		}
+
+		response, _ := json.Marshal(reply)
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Write(response)
 	})
 	mux.Handle("/", handler)
 
-	return &GodicServer{
-		server: &http.Server{
-			Addr:    addr,
-			Handler: mux,
-		},
-		client: client,
-	}, nil
-}
-
-func (s *GodicServer) SetWebTranslateIt(wti *WebTranslateIt) {
-	s.wti = wti
-	s.wti.SetCallback(func(locales []string) {
+	wti.SetCallback(func(locales []string) {
 		for i := range locales {
-			s.client.Publish(fmt.Sprintf(UpdateTopic, locales[i]), nil, nil)
+			client.Publish(fmt.Sprintf(UpdateTopic, locales[i]), nil, nil)
 		}
 	})
+
+	return server, nil
 }
 
 func (s *GodicServer) ListenAndServe() error {
