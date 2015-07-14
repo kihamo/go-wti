@@ -12,7 +12,9 @@ import (
 )
 
 const (
-	updatedLangRegexp = "(?is)\\$lang\\[\"(?P<key>.*?)\"\\] = \"(?P<value>.*?)\";"
+	updatedLangRegexp   = "(?is)\\$lang\\[\"(?P<key>.*?)\"\\] = \"(?P<value>.*?)\";"
+	updateRetryDelay    = time.Second * 10
+	updateRetryAttempts = 3
 )
 
 var (
@@ -35,12 +37,11 @@ func init() {
 }
 
 type WebTranslateIt struct {
-	wti                 *wti.WebTranslateIt
-	updateRetryDelay    time.Duration
-	updateRetryAttempts int64
-	dictionaries        []*Dictionary
-	callback            func([]string)
-	mutex               sync.Mutex
+	wti          *wti.WebTranslateIt
+	dictionaries []*Dictionary
+	callback     func([]string)
+	attempts     int64
+	mutex        sync.Mutex
 }
 
 type Dictionary struct {
@@ -61,12 +62,10 @@ func GetLocale(locale string) string {
 	return locale
 }
 
-func NewWebTranslateIt(wtiToken string, updateRetryDelay time.Duration, updateRetryAttempts int64) *WebTranslateIt {
+func NewWebTranslateIt(wtiToken string) *WebTranslateIt {
 	return &WebTranslateIt{
-		wti:                 wti.NewWebTranslateIt(wtiToken),
-		updateRetryDelay:    updateRetryDelay,
-		updateRetryAttempts: updateRetryAttempts,
-		dictionaries:        []*Dictionary{},
+		wti:          wti.NewWebTranslateIt(wtiToken),
+		dictionaries: []*Dictionary{},
 	}
 }
 
@@ -90,9 +89,27 @@ func (w *WebTranslateIt) SetCallback(f func([]string)) {
 	w.callback = f
 }
 
-func (w *WebTranslateIt) Update() error {
+func (w *WebTranslateIt) Update() (err error) {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
+
+	w.attempts = 0
+	for w.attempts < updateRetryAttempts {
+		err = w.update()
+		if err == nil {
+			break
+		} else if w.attempts <= updateRetryAttempts {
+			time.Sleep(updateRetryDelay)
+		}
+
+		log.Printf("Update failed. Attempts: %d, reason: %s\n", w.attempts, err.Error())
+	}
+
+	return err
+}
+
+func (w *WebTranslateIt) update() error {
+	w.attempts = w.attempts + 1
 
 	for i := range w.dictionaries {
 		w.dictionaries[i].Update = false
@@ -129,15 +146,6 @@ func (w *WebTranslateIt) Update() error {
 		if len(locales) > 0 {
 			w.callback(locales)
 		}
-	}
-
-	if w.updateRetryDelay > 0 {
-		time.AfterFunc(w.updateRetryDelay, func() {
-			err := w.Update()
-			if err != nil {
-				log.Printf("Update error %s\n", err)
-			}
-		})
 	}
 
 	return nil

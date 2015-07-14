@@ -8,8 +8,6 @@ import (
 	"gopkg.in/jcelliott/turnpike.v2"
 )
 
-// TODO: reconnect after failed request
-
 type GodicClient struct {
 	client *turnpike.Client
 }
