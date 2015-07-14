@@ -27,30 +27,33 @@ func NewServer(addr string, debug bool) (server *GodicServer, err error) {
 		turnpike.Debug()
 	}
 
-	s := turnpike.NewBasicWebsocketServer(Realm)
-	server = &GodicServer{
-		server: &http.Server{
-			Handler: s,
-			Addr:    addr,
-		},
-	}
-
-	// TODO: handle /dictionaries
-
-	server.client, err = s.GetLocalClient(Realm)
+	handler := turnpike.NewBasicWebsocketServer(Realm)
+	client, err := handler.GetLocalClient(Realm)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = server.client.Register(GetDictionaryMethod, server.getDictionary); err != nil {
+	if err = client.Register(GetDictionaryMethod, server.getDictionary); err != nil {
 		return nil, err
 	}
 
-	if err = server.client.Register(DictionaryUpdateMethod, server.dictionaryUpdate); err != nil {
+	if err = client.Register(DictionaryUpdateMethod, server.dictionaryUpdate); err != nil {
 		return nil, err
 	}
 
-	return server, nil
+	mux := http.NewServeMux()
+	mux.HandleFunc("/dictionaries", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("dictionaries health check"))
+	})
+	mux.Handle("/", handler)
+
+	return &GodicServer{
+		server: &http.Server{
+			Addr:    addr,
+			Handler: mux,
+		},
+		client: client,
+	}, nil
 }
 
 func (s *GodicServer) SetWebTranslateIt(wti *WebTranslateIt) {
@@ -63,7 +66,7 @@ func (s *GodicServer) SetWebTranslateIt(wti *WebTranslateIt) {
 }
 
 func (s *GodicServer) ListenAndServe() error {
-	s.client.Call(DictionaryUpdateMethod, nil, nil)
+	s.dictionaryUpdate(nil, nil)
 	return s.server.ListenAndServe()
 }
 
