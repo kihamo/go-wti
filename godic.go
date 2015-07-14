@@ -44,11 +44,11 @@ func NewServer(addr string, wti *WebTranslateIt, debug bool) (server *GodicServe
 		wti:    wti,
 	}
 
-	if err = client.Register(GetDictionaryMethod, server.getDictionary); err != nil {
+	if err = client.Register(GetDictionaryMethod, server.GetDictionary); err != nil {
 		return nil, err
 	}
 
-	if err = client.Register(DictionaryUpdateMethod, server.dictionaryUpdate); err != nil {
+	if err = client.Register(DictionaryUpdateMethod, server.DictionaryUpdate); err != nil {
 		return nil, err
 	}
 
@@ -80,11 +80,11 @@ func NewServer(addr string, wti *WebTranslateIt, debug bool) (server *GodicServe
 }
 
 func (s *GodicServer) ListenAndServe() error {
-	s.dictionaryUpdate(nil, nil)
+	s.DictionaryUpdate(nil, nil)
 	return s.server.ListenAndServe()
 }
 
-func (s *GodicServer) getDictionary(args []interface{}, kwargs map[string]interface{}) *turnpike.CallResult {
+func (s *GodicServer) GetDictionary(args []interface{}, kwargs map[string]interface{}) *turnpike.CallResult {
 	if len(args) < 1 {
 		return &turnpike.CallResult{Err: turnpike.URI(GetDictionaryErrorURI)}
 	}
@@ -102,7 +102,7 @@ func (s *GodicServer) getDictionary(args []interface{}, kwargs map[string]interf
 	return &turnpike.CallResult{Args: []interface{}{dictionary.Phrases}}
 }
 
-func (s *GodicServer) dictionaryUpdate(args []interface{}, kwargs map[string]interface{}) *turnpike.CallResult {
+func (s *GodicServer) DictionaryUpdate(args []interface{}, kwargs map[string]interface{}) *turnpike.CallResult {
 	go func() {
 		err := s.wti.Update()
 		if err != nil {

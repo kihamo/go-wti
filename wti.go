@@ -42,6 +42,7 @@ type WebTranslateIt struct {
 	callback     func([]string)
 	attempts     int64
 	mutex        sync.Mutex
+	updateAt     string
 }
 
 type Dictionary struct {
@@ -120,6 +121,10 @@ func (w *WebTranslateIt) update() error {
 		return err
 	}
 
+	if project.UpdatedAt == w.updateAt {
+		return nil
+	}
+
 	zipFile, err := project.ZipFile()
 	if err != nil {
 		return err
@@ -134,6 +139,7 @@ func (w *WebTranslateIt) update() error {
 		w.parseFile(project.ProjectFiles[i], data[project.ProjectFiles[i].Name])
 	}
 
+	w.updateAt = project.UpdatedAt
 	if w.callback != nil {
 		locales := []string{}
 
