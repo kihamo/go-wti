@@ -2,6 +2,7 @@ package godic
 
 import (
 	"errors"
+	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -14,12 +15,12 @@ const (
 )
 
 var (
-	exp          *regexp.Regexp
-	localAliases = map[string]string{
-		"en_en_VN": "en_VN",
-		"en_en_TH": "en_TH",
-		"en_en_ID": "en_ID",
-		"ms":       "ms_MY",
+	exp           *regexp.Regexp
+	localeAliases = map[string]string{
+		"en_en_vn": "en_vn",
+		"en_en_th": "en_th",
+		"en_en_id": "en_id",
+		"ms":       "ms_my",
 	}
 )
 
@@ -36,8 +37,15 @@ type WebTranslateIt struct {
 	wti                 *wti.WebTranslateIt
 	updateRetryDelay    time.Duration
 	updateRetryAttempts int64
-	dictionaries        map[string]map[string]string
-	callback            func()
+	dictionaries        []*Dictionary
+	callback            func([]string)
+}
+
+type Dictionary struct {
+	Locale  string
+	Phrases map[string]string
+	Hash    string
+	Update  bool
 }
 
 func NewWebTranslateIt(wtiToken string, updateRetryDelay time.Duration, updateRetryAttempts int64) *WebTranslateIt {
@@ -45,41 +53,43 @@ func NewWebTranslateIt(wtiToken string, updateRetryDelay time.Duration, updateRe
 		wti:                 wti.NewWebTranslateIt(wtiToken),
 		updateRetryDelay:    updateRetryDelay,
 		updateRetryAttempts: updateRetryAttempts,
-		dictionaries:        map[string]map[string]string{},
+		dictionaries:        []*Dictionary{},
 	}
 }
 
-func (w *WebTranslateIt) GetDictionary(locale string) (map[string]string, error) {
-	locale = strings.ToLower(locale)
+func (w *WebTranslateIt) GetDictionary(locale string) (*Dictionary, error) {
+	locale = w.getLocale(locale)
 
-	dictionary, ok := w.dictionaries[locale]
-	if !ok {
-		return nil, errors.New("Locale not exists")
+	for i := range w.dictionaries {
+		if w.dictionaries[i].Locale == locale {
+			return w.dictionaries[i], nil
+		}
 	}
 
-	return dictionary, nil
+	return nil, errors.New("Locale not exists")
 }
 
-func (w *WebTranslateIt) SetCallback(f func()) {
+func (w *WebTranslateIt) SetCallback(f func([]string)) {
 	w.callback = f
 }
 
 func (w *WebTranslateIt) Update() error {
+	for i := range w.dictionaries {
+		w.dictionaries[i].Update = false
+	}
+
 	project, err := w.wti.GetProject()
 	if err != nil {
-		// TODO: log
 		return err
 	}
 
 	zipFile, err := project.ZipFile()
 	if err != nil {
-		// TODO: log
 		return err
 	}
 
 	data, err := zipFile.Extract()
 	if err != nil {
-		// TODO: log
 		return err
 	}
 
@@ -88,31 +98,63 @@ func (w *WebTranslateIt) Update() error {
 	}
 
 	if w.callback != nil {
-		w.callback()
+		locales := []string{}
+
+		for i := range w.dictionaries {
+			if w.dictionaries[i].Update {
+				locales = append(locales, w.dictionaries[i].Locale)
+			}
+		}
+
+		if len(locales) > 0 {
+			w.callback(locales)
+		}
 	}
 
 	if w.updateRetryDelay > 0 {
-		time.AfterFunc(w.updateRetryDelay, func() { w.Update() })
+		time.AfterFunc(w.updateRetryDelay, func() {
+			err := w.Update()
+			if err != nil {
+				log.Printf("Update error %s\n", err)
+			}
+		})
 	}
 
 	return nil
 }
 
-func (w *WebTranslateIt) parseFile(file wti.File, content []byte) {
-	locale := file.LocaleCode
-	if _, ok := localAliases[locale]; ok {
-		locale = localAliases[locale]
+func (w *WebTranslateIt) getLocale(locale string) string {
+	locale = strings.ToLower(locale)
+
+	if alias, ok := localeAliases[locale]; ok {
+		return alias
 	}
 
-	locale = strings.ToLower(locale)
-	w.dictionaries[locale] = map[string]string{}
+	return locale
+}
 
-	for _, match := range exp.FindAllStringSubmatch(string(content), -1) {
-		value := match[2]
-		if value == "" {
-			value = match[1]
+func (w *WebTranslateIt) parseFile(file wti.File, content []byte) {
+	dictionary, err := w.GetDictionary(file.LocaleCode)
+	if err != nil {
+		dictionary = &Dictionary{
+			Locale: w.getLocale(file.LocaleCode),
+			Hash:   file.Hash,
 		}
+	}
 
-		w.dictionaries[locale][match[1]] = value
+	if dictionary.Hash != file.Hash {
+		dictionary.Phrases = map[string]string{}
+		dictionary.Update = true
+
+		for _, match := range exp.FindAllStringSubmatch(string(content), -1) {
+			value := match[2]
+			if value == "" {
+				value = match[1]
+			}
+
+			dictionary.Phrases[match[1]] = value
+		}
+	} else {
+		dictionary.Update = false
 	}
 }

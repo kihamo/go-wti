@@ -1,6 +1,8 @@
 package godic // import "github.com/kihamo/godic"
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 
 	"gopkg.in/jcelliott/turnpike.v2"
@@ -8,7 +10,7 @@ import (
 
 const (
 	Realm                  = "godic"
-	UpdateTopic            = "dictionary.updater"
+	UpdateTopic            = "dictionary.updater.%s"
 	DictionaryUpdateMethod = "dictionary.update"
 	GetDictionaryMethod    = "dictionary.get"
 	GetDictionaryErrorURI  = "dictionary.get.error"
@@ -53,8 +55,10 @@ func NewServer(addr string, debug bool) (server *GodicServer, err error) {
 
 func (s *GodicServer) SetWebTranslateIt(wti *WebTranslateIt) {
 	s.wti = wti
-	s.wti.SetCallback(func() {
-		s.client.Publish(UpdateTopic, nil, nil)
+	s.wti.SetCallback(func(locales []string) {
+		for i := range locales {
+			s.client.Publish(fmt.Sprintf(UpdateTopic, locales[i]), nil, nil)
+		}
 	})
 }
 
@@ -78,14 +82,15 @@ func (s *GodicServer) getDictionary(args []interface{}, kwargs map[string]interf
 		return &turnpike.CallResult{Err: turnpike.URI(GetDictionaryErrorURI)}
 	}
 
-	return &turnpike.CallResult{Args: []interface{}{dictionary}}
+	return &turnpike.CallResult{Args: []interface{}{dictionary.Phrases}}
 }
 
 func (s *GodicServer) dictionaryUpdate(args []interface{}, kwargs map[string]interface{}) *turnpike.CallResult {
 	go func() {
-		s.wti.Update()
-
-		// TODO: error log
+		err := s.wti.Update()
+		if err != nil {
+			log.Printf("Update dictionaries error %s\n", err)
+		}
 	}()
 
 	return &turnpike.CallResult{Args: []interface{}{true}}

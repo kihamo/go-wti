@@ -24,8 +24,8 @@ func main() {
 	}
 
 	quit := make(chan bool)
-	client.UpdateSubscribe(func() {
-		log.Println("Local update")
+	client.UpdateSubscribe([]string{"vi_vn", "ms"}, func(locale string) {
+		log.Printf("Update locale %s\n", locale)
 		//quit <- true
 	})
 

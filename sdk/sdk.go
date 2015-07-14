@@ -15,7 +15,7 @@ type GodicClient struct {
 }
 
 func NewClient(addr string, debug bool) (*GodicClient, error) {
-	c, err := turnpike.NewWebsocketClient(turnpike.JSON, fmt.Sprintf("ws://%s/", addr))
+	c, err := turnpike.NewWebsocketClient(turnpike.MSGPACK, fmt.Sprintf("ws://%s/", addr))
 	if err != nil {
 		return nil, err
 	}
@@ -63,8 +63,11 @@ func (s *GodicClient) DictionaryUpdate() (bool, error) {
 	return result, nil
 }
 
-func (s *GodicClient) UpdateSubscribe(f func()) {
-	s.client.Subscribe(godic.UpdateTopic, func([]interface{}, map[string]interface{}) {
-		f()
-	})
+func (s *GodicClient) UpdateSubscribe(locales []string, f func(locale string)) {
+	for i := range locales {
+		topic := fmt.Sprintf(godic.UpdateTopic, locales[i])
+		s.client.Subscribe(topic, func([]interface{}, map[string]interface{}) {
+			f(locales[i])
+		})
+	}
 }
